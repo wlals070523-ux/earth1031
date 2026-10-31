@@ -510,7 +510,7 @@ function note(freq,t,d,wave,g,dest){
   o.start(t);o.stop(t+d+0.05);
 }
 function tick(){
-  const c=Aud.ctx;if(!c||!Aud.track||!S.set.music||!Aud.started)return;
+  const c=Aud.ctx;if(!c||!Aud.track||!S.set.music||!Aud.started||Aud.bgm)return;
   const TR=TRACKS[Aud.track];if(!TR)return;
   const dur=60/TR.bpm/2,vm=TR.vol||1;
   while(Aud.next<c.currentTime+0.3){
@@ -525,7 +525,14 @@ function setTrack(name){
   if(Aud.ctx)Aud.next=Aud.ctx.currentTime+0.08;
   musicApply();
 }
+const BGM=new Audio('bgm.mp4');BGM.loop=true;BGM.preload='auto';
+BGM.addEventListener('playing',()=>{Aud.bgm=true;});
+BGM.addEventListener('pause',()=>{Aud.bgm=false;});
+BGM.addEventListener('error',()=>{Aud.bgm=false;BGM.failed=true;});
 function musicApply(){
+  BGM.volume=[.5,.8,1][S.set.vol]??.8;
+  if(Aud.started&&S.set.music&&!BGM.failed){const p=BGM.play();if(p&&p.catch)p.catch(()=>{});}
+  else if(!BGM.paused)BGM.pause();
   if(Aud.ctx)applyVol();
   if(Aud.started&&S.set.music&&Aud.ctx){
     if(!Aud.timer)Aud.timer=setInterval(tick,100);
